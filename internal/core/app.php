@@ -1,25 +1,35 @@
 <?php
 
-require_once("db.php");
+require_once('db.php');
+require_once('request.php');
 
 class Application
 {
+    private $conf;
     private $db;
+    private $request;
 
     public function __construct()
     {
+        $this->conf = require("conf.php");
+
         try {
-            $connectionData = require("conf.php");
-            $this->db = new Database($connectionData['database']);
+            $connectionData = 
+            $this->db = new Database($this->conf['database']);
         } catch (ConnectionException $ex) {
-            $this->Exit(500);
+            http_response_code(500);
+            die();
         }
     }
 
-    private function Exit($code)
+    public function DB() 
     {
-        http_response_code($code);
-        die();
+        return $this->db;
+    }
+
+    public function Request()
+    {
+        return $this->request;
     }
 
     private $routes = array();
@@ -48,7 +58,7 @@ class Application
 
     public function Resolve()
     {
-        $request = new Request();
+        $this->request = new Request();
 
         $method = $_SERVER['REQUEST_METHOD'];
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -69,33 +79,10 @@ class Application
         }
 
         if ($func == null) {
-            $this->Exit(404);
+            http_response_code(404);
+            die();
         }
 
-        call_user_func($func, $request);
+        call_user_func($func, $this);
     }
-}
-
-class Request
-{
-    public function __construct()
-    {
-
-    }
-
-    public function Get($key)
-    {
-        return $_REQUEST[$key];
-    }
-
-    private $params;
-    public function SetParameters($params)
-    {
-        $this->params = $params;
-    }
-    public function Parameter($key)
-    {
-        return $this->params[$key];
-    }
-
 }

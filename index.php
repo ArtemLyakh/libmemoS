@@ -1,7 +1,9 @@
 <?php
 define("INITIALIZED", true);
 
-$app = require_once($_SERVER['DOCUMENT_ROOT'] . "/internal/bootstrap.php");
+require_once($_SERVER['DOCUMENT_ROOT'] . "/internal/bootstrap.php");
+
+$app = new Application();
 
 $app->Route('GET', '/qwe/{id}/qwe/{qwe}/', function($req) {
     echo "<pre>";
