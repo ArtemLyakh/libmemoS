@@ -1,4 +1,4 @@
-<?php
+<?php if (!defined("INITIALIZED")) die();
 
 class Database extends mysqli
 {

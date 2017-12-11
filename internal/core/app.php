@@ -1,13 +1,15 @@
-<?php
+<?php if (!defined("INITIALIZED")) die();
 
 require_once('db.php');
 require_once('request.php');
+require_once('fs.php');
 
 class Application
 {
     private $conf;
     private $db;
     private $request;
+    private $fs;
 
     public function __construct()
     {
@@ -20,6 +22,8 @@ class Application
             http_response_code(500);
             die();
         }
+
+        $this->fs = new FileSystem();
     }
 
     public function DB() 
@@ -31,6 +35,16 @@ class Application
     {
         return $this->request;
     }
+
+    public function FS()
+    {
+        return $this->fs;
+    }
+
+
+
+
+
 
     private $routes = array();
     public function Route($method, $path, callable $func)
@@ -83,6 +97,6 @@ class Application
             die();
         }
 
-        call_user_func($func, $this);
+        call_user_func($func);
     }
 }
