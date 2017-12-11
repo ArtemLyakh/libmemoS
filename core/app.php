@@ -4,19 +4,18 @@ require_once('db.php');
 require_once('request.php');
 require_once('fs.php');
 
-class Application
+class App
 {
     private $conf;
     private $db;
     private $request;
     private $fs;
 
-    public function __construct()
+    private function __construct()
     {
         $this->conf = require("conf.php");
 
         try {
-            $connectionData = 
             $this->db = new Database($this->conf['database']);
         } catch (ConnectionException $ex) {
             http_response_code(500);
@@ -24,7 +23,30 @@ class Application
         }
 
         $this->fs = new FileSystem();
+
+        self::IncludeControllers($this->conf['app']);
     }
+    protected function __clone() {
+        // ограничивает клонирование объекта
+    }
+
+    private static $_instance = null;
+    public static function Instance() {
+        if(is_null(self::$_instance))
+        {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+    }
+
+    private static function IncludeControllers($conf)
+    {
+        foreach(glob($conf['path'].'/controllers/*.php') as $file) {
+            include_once($file);
+        }
+    }
+
+
 
     public function DB() 
     {
@@ -47,7 +69,7 @@ class Application
 
 
     private $routes = array();
-    public function Route($method, $path, callable $func)
+    public function Route($method, $path, $func)
     {
         $matches = null;
         preg_match_all('/\{\w+\}/', $path, $matches);
@@ -83,7 +105,7 @@ class Application
 
             $matches = null;
             if (preg_match($route['path'], $path, $matches)) {
-                $request->SetParameters(array_combine(
+                $this->request->SetParameters(array_combine(
                     array_values($route['params']),
                     array_slice($matches, 1)
                 ));
@@ -92,11 +114,16 @@ class Application
             }
         }
 
-        if ($func == null) {
-            http_response_code(404);
-            die();
+        if (is_string($func)) {
+            $matches = null;
+            if (preg_match('/^(\w+)\@(\w+)$/', $func, $matches)) {
+                return call_user_func(array($matches[1], $matches[2]));
+            }
+        } elseif (is_callable($func)) {
+            return call_user_func($func);
         }
 
-        call_user_func($func);
+        http_response_code(404);
+        die();
     }
 }

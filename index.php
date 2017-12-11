@@ -1,15 +1,23 @@
 <?php
 define("INITIALIZED", true);
-require_once($_SERVER['DOCUMENT_ROOT'] . "/internal/bootstrap.php");
+require_once($_SERVER['DOCUMENT_ROOT'] . "/core/app.php");
 
-global $app;
 
-$app->Route('GET', '/qwe/{id}/qwe/{qwe}/', function() {
-    die("qwe");
+
+App::Instance()->Route('GET', '/qwe/{id}/qwe/{qwe}/', function() {
+    var_dump(
+        App::Instance()->Request()->Parameter('id'),
+        App::Instance()->Request()->Parameter('qwe')
+    );  
 });
 
-$app->Route('GET', '/qwe/', function() {
+App::Instance()->Route('GET', '/test/', "TestController@Test");
+
+App::Instance()->Route('GET', '/qwe/', function() {
     die('qqq');
 });
 
-$app->Resolve();
+
+
+
+App::Instance()->Resolve();
