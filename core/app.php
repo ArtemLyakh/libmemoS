@@ -3,6 +3,7 @@
 require_once('db.php');
 require_once('request.php');
 require_once('fs.php');
+require_once('auth.php');
 
 function ErrorDie($code) 
 {
@@ -13,8 +14,8 @@ function ErrorDie($code)
 class App
 {
     private $db;
-    private $request;
     private $fs;
+    private $auth;
 
     protected function __clone() {}
 
@@ -44,6 +45,8 @@ class App
         }
 
         $this->fs = new FileSystem();
+
+        $this->auth = new AuthSystem();
     }
 
     private function IncludeControllers()
@@ -72,10 +75,13 @@ class App
         return $this->fs;
     }
 
+    public function Auth()
+    {
+        return $this->auth;
+    }
 
 
-
-
+    private $request;
 
     private $routes = array();
     public function Route($method, $path, $func)
@@ -135,11 +141,4 @@ class App
         ErrorDie(404);
     }
 
-
-
-
-    public function Install()
-    {
-        $this->FS()->Install();
-    }
 }

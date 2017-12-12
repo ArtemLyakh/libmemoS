@@ -18,10 +18,4 @@ App::Instance()->Route('GET', '/file/', function() {
 });
 
 
-
-App::Instance()->Route('GET', '/install/', function() {
-    App::Instance()->Install();
-});
-
-
 App::Instance()->Resolve();
