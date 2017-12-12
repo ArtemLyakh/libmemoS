@@ -7,4 +7,8 @@ class AuthSystem
 
     }
 
+    private function Add($login, $password)
+    {
+        
+    }
 }

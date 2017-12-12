@@ -1,10 +1,10 @@
 <?php if (!defined("INITIALIZED")) die();
 
-class Database extends mysqli
+class DB
 {
-    private $connection;
+    public $mysqli;
 
-    public function __construct()
+    private function __construct()
     {
         $conf = require('conf.php');
         $connectionData = $conf['db'];
@@ -20,8 +20,16 @@ class Database extends mysqli
             throw new ConnectionException($error);
     }
 
-    
+
+
+    private static $_instance = null;
+    public static function Instance() 
+    {
+        if(is_null(self::$_instance))
+        {
+            self::$_instance = new self();
+        }
+        return self::$_instance->$mysqli;
+    }
 
 }
-
-class ConnectionException extends Exception { }
