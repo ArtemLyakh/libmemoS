@@ -19,5 +19,9 @@ App::Instance()->Route('GET', '/qwe/', function() {
 
 
 
+App::Instance()->Route('GET', '/install/', function() {
+    App::Instance()->Install();
+});
+
 
 App::Instance()->Resolve();

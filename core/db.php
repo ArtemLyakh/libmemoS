@@ -4,8 +4,11 @@ class Database extends mysqli
 {
     private $connection;
 
-    public function __construct(Array $connectionData)
+    public function __construct()
     {
+        $conf = require('conf.php');
+        $connectionData = $conf['db'];
+
         parent::__construct(
             $connectionData['host'],
             $connectionData['user'],

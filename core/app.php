@@ -6,32 +6,15 @@ require_once('fs.php');
 
 class App
 {
-    private $conf;
     private $db;
     private $request;
     private $fs;
 
-    private function __construct()
-    {
-        $this->conf = require("conf.php");
-
-        try {
-            $this->db = new Database($this->conf['database']);
-        } catch (ConnectionException $ex) {
-            http_response_code(500);
-            die();
-        }
-
-        $this->fs = new FileSystem();
-
-        self::IncludeControllers($this->conf['app']);
-    }
-    protected function __clone() {
-        // ограничивает клонирование объекта
-    }
+    protected function __clone() {}
 
     private static $_instance = null;
-    public static function Instance() {
+    public static function Instance() 
+    {
         if(is_null(self::$_instance))
         {
             self::$_instance = new self();
@@ -39,9 +22,30 @@ class App
         return self::$_instance;
     }
 
-    private static function IncludeControllers($conf)
+    private function __construct()
     {
-        foreach(glob($conf['path'].'/controllers/*.php') as $file) {
+        $this->InitSubsystems();
+
+        $this->IncludeControllers();
+    }
+
+    private function InitSubsystems()
+    {
+        try {
+            $this->db = new Database();
+        } catch (ConnectionException $ex) {
+            http_response_code(500);
+            die();
+        }
+
+        $this->fs = new FileSystem();
+    }
+
+    private function IncludeControllers()
+    {
+        $conf = (require('conf.php'))['app'];
+
+        foreach(glob($conf['controllers'].'*.php') as $file) {
             include_once($file);
         }
     }
@@ -125,5 +129,13 @@ class App
 
         http_response_code(404);
         die();
+    }
+
+
+
+
+    public function Install()
+    {
+        $this->FS()->Install();
     }
 }
