@@ -13,8 +13,8 @@ App::Instance()->Route('GET', '/qwe/{id}/qwe/{qwe}/', function() {
 
 App::Instance()->Route('GET', '/test/', "TestController@Test");
 
-App::Instance()->Route('GET', '/qwe/', function() {
-    die('qqq');
+App::Instance()->Route('GET', '/file/', function() {
+    App::Instance()->FS()->RegisterFile(md5(rand()));
 });
 
 

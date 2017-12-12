@@ -4,6 +4,12 @@ require_once('db.php');
 require_once('request.php');
 require_once('fs.php');
 
+function ErrorDie($code) 
+{
+    http_response_code($code);
+    die();
+}
+
 class App
 {
     private $db;
@@ -34,8 +40,7 @@ class App
         try {
             $this->db = new Database();
         } catch (ConnectionException $ex) {
-            http_response_code(500);
-            die();
+            ErrorDie(500);
         }
 
         $this->fs = new FileSystem();
@@ -127,8 +132,7 @@ class App
             return call_user_func($func);
         }
 
-        http_response_code(404);
-        die();
+        ErrorDie(404);
     }
 
 
