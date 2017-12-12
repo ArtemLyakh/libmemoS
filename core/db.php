@@ -6,21 +6,19 @@ class DB
 
     private function __construct()
     {
-        $conf = require('conf.php');
-        $connectionData = $conf['db'];
+        $conf = (require('conf.php'))['db'];
 
-        parent::__construct(
-            $connectionData['host'],
-            $connectionData['user'],
-            $connectionData['password'],
-            $connectionData['database']
+        $this->mysqli = new mysqli(
+            $conf['host'],
+            $conf['user'],
+            $conf['password'],
+            $conf['database']
         );
 
-        if ($error = mysqli_connect_error())
-            throw new ConnectionException($error);
+        if ($error = mysqli_connect_error()) {
+            ErrorDie(500);
+        }
     }
-
-
 
     private static $_instance = null;
     public static function Instance() 
@@ -29,7 +27,26 @@ class DB
         {
             self::$_instance = new self();
         }
-        return self::$_instance->$mysqli;
+        return self::$_instance;
     }
 
+    public function BeginTransaction()
+    {
+        $this->mysqli->begin_transaction();
+    }
+
+    public function CommitTransaction()
+    {
+        $this->$mysqli->commit();
+    }
+
+    public function RellbackTransaction()
+    {
+        $this->$mysqli->rollback();
+    }
+
+    public function Query($sql)
+    {
+
+    }
 }

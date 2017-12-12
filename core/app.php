@@ -1,15 +1,11 @@
 <?php if (!defined("INITIALIZED")) die();
 
-require_once('db.php');
+
 require_once('request.php');
-require_once('fs.php');
+
 require_once('auth.php');
 
-function ErrorDie($code) 
-{
-    http_response_code($code);
-    die();
-}
+
 
 class App
 {
