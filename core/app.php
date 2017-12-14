@@ -1,18 +1,7 @@
 <?php if (!defined("INITIALIZED")) die();
 
-
-require_once('request.php');
-
-require_once('auth.php');
-
-
-
 class App
 {
-    private $db;
-    private $fs;
-    private $auth;
-
     protected function __clone() {}
 
     private static $_instance = null;
@@ -27,57 +16,71 @@ class App
 
     private function __construct()
     {
-        $this->InitSubsystems();
-
-        $this->IncludeControllers();
+        $this->IncludeAppFiles();
     }
 
-    private function InitSubsystems()
-    {
-        try {
-            $this->db = new Database();
-        } catch (ConnectionException $ex) {
-            ErrorDie(500);
-        }
-
-        $this->fs = new FileSystem();
-
-        $this->auth = new AuthSystem();
-    }
-
-    private function IncludeControllers()
+    private function IncludeAppFiles()
     {
         $conf = (require('conf.php'))['app'];
 
-        foreach(glob($conf['controllers'].'*.php') as $file) {
-            include_once($file);
+        self::RecursivePhpInclude($conf['controllers']);
+        self::RecursivePhpInclude($conf['models']);
+        self::RecursivePhpInclude($conf['views']);
+    }
+
+    private static function RecursivePhpInclude($path)
+    {
+        $directory = new RecursiveDirectoryIterator($path);
+        $iterator = new RecursiveIteratorIterator($directory);
+        $regex = new RegexIterator($iterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+        foreach ($regex as $file) {
+            include_once($file[0]);
+        }
+    }
+
+
+    private static function ParseCallable($func)
+    {
+        if (is_string($func)) {
+            $matches = null;
+            if (preg_match('/^(\w+)\@(\w+)$/', $func, $matches)) {
+                return array($matches[1], $matches[2]);
+            }
+        }
+
+        return false;
+    }
+
+
+    private $events = array();
+    public function Event($name, $func)
+    {
+        $this->events[] = array(
+            'name' => $name,
+            'func' => $func
+        );
+    }
+
+    public function ExecuteEvent($name, $params)
+    {
+        $functions = array();
+        foreach ($this->events as $event) {
+            if ($event['name'] == $name) {
+                $events[] = $event['func'];
+            }
+        }
+
+        foreach ($functions as $func) {
+            if (is_string($func)) $func = self::ParseCallable($func);
+            
+            if (is_callable($func)) {
+                call_user_func_array($func, $params);
+            }
         }
     }
 
 
 
-    public function DB() 
-    {
-        return $this->db;
-    }
-
-    public function Request()
-    {
-        return $this->request;
-    }
-
-    public function FS()
-    {
-        return $this->fs;
-    }
-
-    public function Auth()
-    {
-        return $this->auth;
-    }
-
-
-    private $request;
 
     private $routes = array();
     public function Route($method, $path, $func)
@@ -105,36 +108,84 @@ class App
 
     public function Resolve()
     {
-        $this->request = new Request();
+        $func = null;
+        $params = null;
 
         $method = $_SERVER['REQUEST_METHOD'];
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        $func = null;
         foreach ($this->routes as $route) {
             if ($route['method'] != $method) continue;
 
             $matches = null;
             if (preg_match($route['path'], $path, $matches)) {
-                $this->request->SetParameters(array_combine(
-                    array_values($route['params']),
-                    array_slice($matches, 1)
-                ));
-
                 $func = $route['func'];
+                $params = array_slice($matches, 1);
             }
         }
 
         if (is_string($func)) {
-            $matches = null;
-            if (preg_match('/^(\w+)\@(\w+)$/', $func, $matches)) {
-                return call_user_func(array($matches[1], $matches[2]));
+            $func = self::ParseCallable($func);
+        } 
+
+
+        if (!is_callable($func)) Util::ErrorDie(404);
+
+        $code = 200;
+        $view = null;
+        $raw = null;
+        try {
+            ob_start();
+            $view = call_user_func_array($func, $params);
+            $raw = ob_get_clean();
+        } catch (AppException $ex) {
+            $code = $ex->code;
+            $view = new ErrorView(array(
+                'error' => $ex->error
+            ));
+        }
+        
+        if (!is_null($view) && $view instanceof BaseView) {
+            http_response_code($code);
+            if ($view->GetType() == 'json') {
+                header('Content-Type: application/json');
             }
-        } elseif (is_callable($func)) {
-            return call_user_func($func);
+            echo $view->Get();
+        } else {
+            echo $raw;
         }
 
-        ErrorDie(404);
+        die();
     }
 
+}
+
+
+class AppException extends Exception
+{
+    public $code;
+    public $error;
+
+    public function __construct($code, $error)
+    {
+        $this->code = $code;
+        $this->error = $error;
+    }
+}
+
+abstract class BaseView 
+{
+    protected $data;
+
+    public function __construct($data)
+    {
+        $this->data = $data;
+    }
+
+    public function GetType()
+    {
+        return 'json';
+    }
+
+    public abstract function Get();
 }

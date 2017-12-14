@@ -16,7 +16,7 @@ class DB
         );
 
         if ($error = mysqli_connect_error()) {
-            ErrorDie(500);
+            Util::ErrorDie(500);
         }
     }
 
@@ -37,16 +37,26 @@ class DB
 
     public function CommitTransaction()
     {
-        $this->$mysqli->commit();
+        $this->mysqli->commit();
     }
 
-    public function RellbackTransaction()
+    public function RollbackTransaction()
     {
-        $this->$mysqli->rollback();
+        $this->mysqli->rollback();
     }
 
     public function Query($sql)
     {
+        return $this->mysqli->query($sql);
+    }
 
+    public function Prepare($sql)
+    {
+        return $this->mysqli->prepare($sql);
+    }
+
+    public function LastInsertedId()
+    {
+        return $this->mysqli->insert_id;
     }
 }

@@ -8,7 +8,9 @@ return array(
         'database' => 'libmemo'
     ),
     'app' => array(
-        'controllers' => $_SERVER['DOCUMENT_ROOT'].'/controllers/'
+        'controllers' => $_SERVER['DOCUMENT_ROOT'].'/controllers/',
+        'models' => $_SERVER['DOCUMENT_ROOT'].'/models/',
+        'views' => $_SERVER['DOCUMENT_ROOT'].'/views/'
     ),
     'fs' => array(
         'upload' => $_SERVER['DOCUMENT_ROOT'].'/upload/',
