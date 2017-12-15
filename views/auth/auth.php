@@ -1,6 +1,6 @@
 <?php if (!defined("INITIALIZED")) die();
 
-class RegisterView extends BaseView
+class AuthView extends BaseView
 {
     public function Get() 
     {
@@ -9,7 +9,8 @@ class RegisterView extends BaseView
             'id' => $data['id'],
             'email' => $data['email'],
             'fio' => $data['fio'],
-            'is_admin' => $data['is_admin']
+            'is_admin' => $data['is_admin'],
+            'token' => $data['token']
         ));
     }
 }
