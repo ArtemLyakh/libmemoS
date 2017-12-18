@@ -24,7 +24,7 @@ class Token
         $expires = new DateTime('+1 year');
 
         $stmt = DB::Instance()->Prepare($sql);
-        $stmt->bind_param('sis', $token, $userId, $expires->format('Y-m-d'));
+        $stmt->bind_param('sii', $token, $userId, $expires->getTimestamp());
 
         DB::Instance()->BeginTransaction();
         try {
@@ -51,5 +51,37 @@ class Token
         }
     }
 
+    public static function GetUser(string $token)
+    {
+        $sql = "
+            SELECT `user`
+            FROM `tokens`
+            WHERE `token` = ? AND `expires` > ?
+        ";
+
+        $stmt = DB::Instance()->Prepare($sql);
+
+        $stmt->bind_param('si', $token, time());
+
+        try {
+            if (!$stmt->execute()) {
+                switch ($stmt->errno) {
+                    default: throw new Exception("Неизвестная ошибка");
+                }
+            }
+
+            $stmt->bind_result($_userId);
+
+            if (!$stmt->fetch()) {
+                throw new TokenException('Токен не найден');
+            }
+
+            return $_userId;
+        } finally {
+            $stmt->close();
+        }
+    }
 
 }
+
+class TokenException extends Exception {}

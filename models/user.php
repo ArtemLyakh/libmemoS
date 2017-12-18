@@ -61,7 +61,7 @@ class User
         $sql = "
             SELECT `id`, `email`, `password`, `is_super`, `first_name`, `last_name`, `second_name`, `image`, `date_birth`
             FROM `users`
-            WHERE `email`=?
+            WHERE `email` = ?
         ";
 
         $stmt = DB::Instance()->Prepare($sql);
@@ -100,6 +100,102 @@ class User
             $stmt->close();
         }
     }
+
+    public static function GetById(int $id) 
+    {
+        $sql = "
+            SELECT `id`, `email`, `password`, `is_super`, `first_name`, `last_name`, `second_name`, `image`, `date_birth`
+            FROM `users`
+            WHERE `id` = ?
+        ";
+
+        $stmt = DB::Instance()->Prepare($sql);
+        $stmt->bind_param('i', $id);
+        try {
+            if (!$stmt->execute()) {
+                switch ($stmt->errno) {
+                    default: throw new Exception("Неизвестная ошибка");
+                }
+            }
+
+            $stmt->bind_result($_id, $_email, $_password, $_isSuper, $_firstName, $_lastName, $_secondName, $_image, $_dateBirth);
+
+            if (!$stmt->fetch()) {
+                throw new UserException('Пользователь не найден');
+            }
+
+            $user = new self();
+
+            $user->id = $_id;
+            $user->email = $_email;
+            $user->password = $_password;
+            $user->isSuper = $_isSuper != 0;
+            $user->firstName = $_firstName;
+            $user->lastName = $_lastName;
+            $user->secondName = $_secondName;
+            $user->image = $_image;
+            $user->dateBirth = empty($_dateBirth) ? null : new DateTime($_dateBirth);
+
+            return $user;
+        } finally {
+            $stmt->close();
+        }
+    }
+
+    public function Save()
+    {
+        $sql = "
+            UPDATE `users` 
+            SET
+                `updated` = FROM_UNIXTIME(?),
+                `first_name` = ?,
+                `last_name` = ?,
+                `second_name` = ?,
+                `image` = ?,
+                `date_birth` = FROM_UNIXTIME(?)
+            WHERE `id` = ?
+        ";
+
+        $id = $this->id;
+        $timestamp = time();
+        $firstName = $this->firstName;
+        $lastName = $this->lastName;
+        $secondName = $this->secondName;
+        $image = $this->image;
+        $dateBirth = is_null($this->dateBirth) ? null : $this->dateBirth;
+
+
+        $stmt = DB::Instance()->Prepare($sql);
+        $stmt->bind_param(
+            'isssiii', 
+            $timestamp,
+            $firstName,
+            $lastName,
+            $secondName,
+            $image,
+            $dateBirth,
+            $id
+        );
+
+        DB::Instance()->BeginTransaction();
+        try {
+            if (!$stmt->execute()) {
+                switch ($stmt->errno) {
+                    default: throw new Exception("Неизвестная ошибка");
+                }
+            }
+
+            DB::Instance()->CommitTransaction();
+
+            return $this;
+        } catch (Exception $ex) {
+            DB::Instance()->RollbackTransaction();
+            throw $ex;
+        } finally {
+            $stmt->close();
+        }
+    }
+
 }
 
 class UserException extends Exception { }

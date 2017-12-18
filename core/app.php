@@ -79,9 +79,6 @@ class App
         }
     }
 
-
-
-
     private $routes = array();
     public function Route($method, $path, $func)
     {
@@ -106,8 +103,41 @@ class App
         );
     }
 
+
+
+    private $user;
+    public function User()
+    {
+        return $this->user;
+    }
+
+    private function Auth()
+    {
+        $this->user = null;
+
+        $headers = getallheaders();
+        if (!isset($headers['Authorization'])) return;
+
+        $token = $headers['Authorization'];
+
+        $userId = null;
+        try {
+            $userId = Token::GetUser($token);
+        } catch (TokenException $ex) {
+            return;
+        }
+
+        try {
+            $this->user = User::GetById($userId);
+        } catch (UserException $ex) {
+            return;
+        }
+    }
+
     public function Resolve()
     {
+        $this->Auth();
+
         $func = null;
         $params = null;
 
@@ -173,19 +203,3 @@ class AppException extends Exception
     }
 }
 
-abstract class BaseView 
-{
-    protected $data;
-
-    public function __construct($data)
-    {
-        $this->data = $data;
-    }
-
-    public function GetType()
-    {
-        return 'json';
-    }
-
-    public abstract function Get();
-}

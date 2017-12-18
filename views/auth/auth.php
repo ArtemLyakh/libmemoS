@@ -2,6 +2,8 @@
 
 class AuthView extends BaseView
 {
+
+    
     public function Get() 
     {
         $data = $this->data;

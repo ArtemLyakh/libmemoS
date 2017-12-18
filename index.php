@@ -24,19 +24,16 @@ App::Instance()->Route('GET', '/api/auth/login/', function() {
     <?
 });
 
+
 App::Instance()->Route('POST', '/api/auth/register/', 'AuthController@Register');
 App::Instance()->Route('POST', '/api/auth/login/', 'AuthController@Login');
 
-App::Instance()->Route('GET', '/qwe/{id}/qwe/{qwe}/', function($id, $qwe) {
-    echo "<pre>";
-    var_dump($id, $qwe);
-    echo "</pre>";
-    echo "<hr>";
+App::Instance()->Route('GET', '/api/account/', 'AccountController@GetInfo');
+App::Instance()->Route('POST', '/api/account/', 'AccountController@SaveInfo');
 
-});
 
-App::Instance()->Route('GET', '/qwe/qwe/', function() {
-    echo "qwe";
+App::Instance()->Route('GET', '/test/', function() {
+    var_dump(getallheaders());
 });
 
 App::Instance()->Resolve();

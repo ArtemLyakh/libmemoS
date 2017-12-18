@@ -1,6 +1,6 @@
 <?php if (!defined("INITIALIZED")) die();
 
-class AuthController 
+class AuthController extends BaseController
 {
     public static function Register()
     {
