@@ -13,7 +13,7 @@ class AccountView extends BaseView
         ?string $lastName,
         ?string $secondName,
         ?DateTime $dateBirth,
-        ?string $photo
+        ?File $photo
     ) {
         $this->firstName = $firstName;
         $this->lastName = $lastName;
@@ -31,7 +31,9 @@ class AccountView extends BaseView
             'date_birth' => is_null($this->dateBirth)
                 ? null
                 : $this->dateBirth->format('d.m.Y'),
-            'photo_url' => $photo
+            'photo_url' => is_null($this->photo)
+                ? null
+                : $this->photo->getPath()
         ));
     }
 }

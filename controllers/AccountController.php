@@ -9,11 +9,11 @@ class AccountController extends BaseController
         $user = App::Instance()->User();
 
         return new AccountView(
-            $user->firstName,
-            $user->lastName,
-            $user->secondName,
-            $user->dateBirth,
-            null
+            $user->getFirstName(),
+            $user->getLastName(),
+            $user->getSecondName(),
+            $user->getDateBirth(),
+            $user->getImage()
         );
     }
 
@@ -24,15 +24,15 @@ class AccountController extends BaseController
         $user = App::Instance()->User();
 
         if ($firstName = trim($_POST["first_name"])) {		
-            $user->firstName = $firstName;
+            $user->setFirstName($firstName);
         }
 
         if ($lastName = trim($_POST["last_name"])) {
-            $user->lastName = $lastName;
+            $user->setLastName($lastName);
         }
 
         if ($secondName = trim($_POST["second_name"])) {
-            $user->secondName = $secondName;
+            $user->setSecondName($secondName);
         }	
         
         if (isset($_POST["date_birth"])) {
@@ -40,22 +40,22 @@ class AccountController extends BaseController
             if (!$date) 
                 throw new AppException(400, 'Неверный формат даты рождения');
 
-            $user->dateBirth = $date;	
+            $user->setDateBirth($date);	
         }
 
-        if (isset($_FILES["photo"]) && !$_FILES["photo"]["error"]) {
-            // $uploadfile = Config::UPLOAD_DIR.md5(uniqid(rand(), true)).'_'.$_FILES["photo"]["name"];
-        
-            // if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadfile)) {
-            //     $arFields["PERSONAL_PHOTO"] = CFile::MakeFileArray($uploadfile);
-            //     $arFields["PERSONAL_PHOTO"]['del'] = "N";           
-            //     $arFields["PERSONAL_PHOTO"]["MODULE_ID"] = "main";
-        
-            //     $fileArr = CFile::MakeFileArray($uploadfile);
-            //     $id = CFile::SaveFile($fileArr, "photos");
-        
-            //     $person->setPhotos([$id]);
-            // }
+
+
+        if (isset($_FILES["photo"])) {
+            $photos = null;
+            try {
+                $photos = FS::Instance()->SaveUploadedFiles("photo", true);
+            } catch (FSException $ex) {
+                throw new AppException(400, $ex->getMessage());
+            } catch (Exception $ex) {
+                throw new AppException(500, 'Серверная ошибка');
+            }
+
+            $user->setImage($photos[0]);
         }
 
         try {
@@ -65,11 +65,11 @@ class AccountController extends BaseController
         }
         
         return new AccountView(
-            $user->firstName,
-            $user->lastName,
-            $user->secondName,
-            $user->dateBirth,
-            null
+            $user->getFirstName(),
+            $user->getLastName(),
+            $user->getSecondName(),
+            $user->getDateBirth(),
+            $user->getImage()
         );
     }
 }

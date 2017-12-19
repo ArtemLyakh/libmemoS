@@ -122,7 +122,7 @@ class App
 
         $userId = null;
         try {
-            $userId = Token::GetUser($token);
+            $userId = Token::GetUserIdByToken($token);
         } catch (TokenException $ex) {
             return;
         }
@@ -170,9 +170,7 @@ class App
             $raw = ob_get_clean();
         } catch (AppException $ex) {
             $code = $ex->code;
-            $view = new ErrorView(array(
-                'error' => $ex->error
-            ));
+            $view = new ErrorView($ex->error);
         }
         
         if (!is_null($view) && $view instanceof BaseView) {

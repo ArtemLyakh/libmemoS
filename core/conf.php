@@ -13,8 +13,8 @@ return array(
         'views' => $_SERVER['DOCUMENT_ROOT'].'/views/'
     ),
     'fs' => array(
-        'upload' => $_SERVER['DOCUMENT_ROOT'].'/upload/',
-        'tmp' => $_SERVER['DOCUMENT_ROOT'].'/tmp/',
-        'cache' => $_SERVER['DOCUMENT_ROOT'].'/cache/'
+        'upload' => '/upload/',
+        'tmp' => '/tmp/',
+        'cache' => '/cache/'
     )
 );

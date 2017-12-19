@@ -2,15 +2,41 @@
 
 class User
 {
-    public $id;
-    public $email;
-    public $password;
-    public $isSuper = false;
-    public $firstName;
-    public $lastName;
-    public $secondName;
-    public $image;
-    public $dateBirth;
+    private $id;
+    public function getId() { return $this->id; }
+    protected function setId(int $id) { $this->id = $id; }
+
+    private $email;
+    public function getEmail() { return $this->email; }
+    public function setEmail(string $email) { $this->email = $email; }
+
+    private $password;
+    public function getPassword() { return $this->password; }
+    protected function setPassword(string $password) { $this->password = $password; }
+
+    private $isSuper = false;
+    public function getIsSuper() { return $this->isSuper; }
+    protected function setIsSuper(bool $isSuper) { $this->isSuper = $isSuper; }
+
+    private $firstName;
+    public function getFirstName() { return $this->firstName; }
+    public function setFirstName(string $firstName) { $this->firstName = $firstName; }
+
+    private $lastName;
+    public function getLastName() { return $this->lastName; }
+    public function setLastName(?string $lastName) { $this->lastName = $lastName; }
+
+    private $secondName;
+    public function getSecondName() { return $this->secondName; }
+    public function setSecondName(?string $secondName) { $this->secondName = $secondName; }
+
+    private $image;
+    public function getImage() { return $this->image; }
+    public function setImage(?File $image) { $this->image = $image; }
+
+    private $dateBirth;
+    public function getDateBirth() { return $this->dateBirth; }
+    public function setDateBirth(?DateTime $dateBirth) { $this->dateBirth = $dateBirth; }
 
     protected function __construct()
     {
@@ -27,7 +53,12 @@ class User
         ";
 
         $stmt = DB::Instance()->Prepare($sql);
-        $stmt->bind_param('sss', $email, password_hash($password, PASSWORD_DEFAULT), $email);
+
+        $_email = $email;
+        $_password = password_hash($password, PASSWORD_DEFAULT);
+        $_firstName = $email;
+
+        $stmt->bind_param('sss', $_email, $_password, $_firstName);
 
         DB::Instance()->BeginTransaction();
         try {
@@ -40,10 +71,10 @@ class User
 
             $user = new self();
 
-            $user->id = DB::Instance()->LastInsertedId();
-            $user->email = $email;
-            $user->password = $password;
-            $user->fio = $email;
+            $user->setId(DB::Instance()->LastInsertedId());
+            $user->setEmail($_email);
+            $user->setPassword($password);
+            $user->setFirstName($_firstName);
 
             DB::Instance()->CommitTransaction();
 
@@ -59,13 +90,27 @@ class User
     public static function GetByAuth(string $email, string $password)
     {
         $sql = "
-            SELECT `id`, `email`, `password`, `is_super`, `first_name`, `last_name`, `second_name`, `image`, `date_birth`
-            FROM `users`
-            WHERE `email` = ?
+            SELECT 
+                u.id, 
+                u.email, 
+                u.password, 
+                u.is_super, 
+                u.first_name, 
+                u.last_name, 
+                u.second_name, 
+                u.date_birth, 
+                u.image, 
+                f.path
+            FROM users AS u
+                LEFT JOIN files AS f ON u.image = f.id
+            WHERE u.email = ?
         ";
 
         $stmt = DB::Instance()->Prepare($sql);
-        $stmt->bind_param('s', $email);
+
+        $_email = $email;
+
+        $stmt->bind_param('s', $_email);
         try {
             if (!$stmt->execute()) {
                 switch ($stmt->errno) {
@@ -73,7 +118,18 @@ class User
                 }
             }
 
-            $stmt->bind_result($_id, $_email, $_password, $_isSuper, $_firstName, $_lastName, $_secondName, $_image, $_dateBirth);
+            $_id = null;
+            $_email = null;
+            $_password = null;
+            $_isSuper = null;
+            $_firstName = null;
+            $_lastName = null;
+            $_secondName = null;
+            $_dateBirth = null;
+            $_imageId = null;
+            $_imagePath = null;
+
+            $stmt->bind_result($_id, $_email, $_password, $_isSuper, $_firstName, $_lastName, $_secondName, $_dateBirth, $_imageId, $_imagePath);
 
             if (!$stmt->fetch()) {
                 throw new UserException('Пользователь не найден');
@@ -85,15 +141,19 @@ class User
 
             $user = new self();
 
-            $user->id = $_id;
-            $user->email = $_email;
-            $user->password = $_password;
-            $user->isSuper = $_isSuper != 0;
-            $user->firstName = $_firstName;
-            $user->lastName = $_lastName;
-            $user->secondName = $_secondName;
-            $user->image = $_image;
-            $user->dateBirth = empty($_dateBirth) ? null : new DateTime($_dateBirth);
+            $user->setId($_id);
+            $user->setEmail($_email);
+            $user->setPassword($_password);
+            $user->setIsSuper($_isSuper == 1);
+            $user->setFirstName($_firstName);
+            $user->setLastName($_lastName);
+            $user->setSecondName($_secondName);
+            if (!is_null($_dateBirth)) {
+                $user->setDateBirth(new DateTime($_dateBirth));
+            }
+            if (is_int($_imageId) && !empty($_imagePath)) {
+                $user->setImage(new File($_imageId, $_imagePath));
+            }
 
             return $user;
         } finally {
@@ -104,13 +164,27 @@ class User
     public static function GetById(int $id) 
     {
         $sql = "
-            SELECT `id`, `email`, `password`, `is_super`, `first_name`, `last_name`, `second_name`, `image`, `date_birth`
-            FROM `users`
-            WHERE `id` = ?
+            SELECT 
+                u.id, 
+                u.email, 
+                u.password, 
+                u.is_super, 
+                u.first_name, 
+                u.last_name, 
+                u.second_name, 
+                u.date_birth, 
+                u.image, 
+                f.path
+            FROM users AS u
+                LEFT JOIN files AS f ON u.image = f.id
+            WHERE u.id = ?
         ";
 
         $stmt = DB::Instance()->Prepare($sql);
-        $stmt->bind_param('i', $id);
+
+        $_id = $id;
+
+        $stmt->bind_param('i', $_id);
         try {
             if (!$stmt->execute()) {
                 switch ($stmt->errno) {
@@ -118,7 +192,18 @@ class User
                 }
             }
 
-            $stmt->bind_result($_id, $_email, $_password, $_isSuper, $_firstName, $_lastName, $_secondName, $_image, $_dateBirth);
+            $_id = null;
+            $_email = null;
+            $_password = null;
+            $_isSuper = null;
+            $_firstName = null;
+            $_lastName = null;
+            $_secondName = null;
+            $_dateBirth = null;
+            $_imageId = null;
+            $_imagePath = null;
+
+            $stmt->bind_result($_id, $_email, $_password, $_isSuper, $_firstName, $_lastName, $_secondName, $_dateBirth, $_imageId, $_imagePath);
 
             if (!$stmt->fetch()) {
                 throw new UserException('Пользователь не найден');
@@ -126,15 +211,19 @@ class User
 
             $user = new self();
 
-            $user->id = $_id;
-            $user->email = $_email;
-            $user->password = $_password;
-            $user->isSuper = $_isSuper != 0;
-            $user->firstName = $_firstName;
-            $user->lastName = $_lastName;
-            $user->secondName = $_secondName;
-            $user->image = $_image;
-            $user->dateBirth = empty($_dateBirth) ? null : new DateTime($_dateBirth);
+            $user->setId($_id);
+            $user->setEmail($_email);
+            $user->setPassword($_password);
+            $user->setIsSuper($_isSuper == 1);
+            $user->setFirstName($_firstName);
+            $user->setLastName($_lastName);
+            $user->setSecondName($_secondName);
+            if (!is_null($_dateBirth)) {
+                $user->setDateBirth(new DateTime($_dateBirth));
+            }
+            if (is_int($_imageId) && !empty($_imagePath)) {
+                $user->setImage(new File($_imageId, $_imagePath));
+            }
 
             return $user;
         } finally {
@@ -156,32 +245,38 @@ class User
             WHERE `id` = ?
         ";
 
-        $id = $this->id;
-        $timestamp = time();
-        $firstName = $this->firstName;
-        $lastName = $this->lastName;
-        $secondName = $this->secondName;
-        $image = $this->image;
-        $dateBirth = is_null($this->dateBirth) ? null : $this->dateBirth;
-
-
         $stmt = DB::Instance()->Prepare($sql);
+
+        $_id = $this->getId();
+        $_timestamp = time();
+        $_firstName = $this->getFirstName();
+        $_lastName = $this->getLastName();
+        $_secondName = $this->getSecondName();
+        $_image = is_null($this->getImage()) 
+            ? null 
+            : $this->getImage()->getId();
+        $_dateBirth = is_null($this->getDateBirth()) 
+            ? null 
+            : $this->getDateBirth()->getTimestamp();
+
         $stmt->bind_param(
             'isssiii', 
-            $timestamp,
-            $firstName,
-            $lastName,
-            $secondName,
-            $image,
-            $dateBirth,
-            $id
+            $_timestamp,
+            $_firstName,
+            $_lastName,
+            $_secondName,
+            $_image,
+            $_dateBirth,
+            $_id
         );
 
         DB::Instance()->BeginTransaction();
         try {
             if (!$stmt->execute()) {
                 switch ($stmt->errno) {
-                    default: throw new Exception("Неизвестная ошибка");
+                    default: 
+                    var_dump($stmt->errno, $stmt->error, $_image, $this->getImage());die();
+                    throw new Exception("Неизвестная ошибка");
                 }
             }
 

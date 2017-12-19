@@ -2,9 +2,17 @@
 
 class Token
 {
-    public $token;
-    public $userId;
-    public $expires;
+    private $token;
+    public function getToken() { return $this->token; }
+    protected function setToken(string $token) { $this->token = $token; }
+
+    private $userId;
+    public function getUserId() { return $this->userId; }
+    protected function setUserId(int $userId) { $this->userId = $userId; }
+
+    private $expires;
+    public function getExpires() { return $this->expires; }
+    protected function setExpires(DateTime $expires) { $this->expires = $expires; }
 
     protected function __construct()
     {
@@ -51,7 +59,7 @@ class Token
         }
     }
 
-    public static function GetUser(string $token)
+    public static function GetUserIdByToken(string $token)
     {
         $sql = "
             SELECT `user`
@@ -61,7 +69,10 @@ class Token
 
         $stmt = DB::Instance()->Prepare($sql);
 
-        $stmt->bind_param('si', $token, time());
+        $_token = $token;
+        $_time = time();
+
+        $stmt->bind_param('si', $_token, $_time);
 
         try {
             if (!$stmt->execute()) {
@@ -70,6 +81,7 @@ class Token
                 }
             }
 
+            $_userId = null;
             $stmt->bind_result($_userId);
 
             if (!$stmt->fetch()) {
