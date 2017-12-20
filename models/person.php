@@ -84,6 +84,10 @@ class Person
     public function getGraveNumber() { return $this->graveNumber; }
     public function setGraveNumber(?numeric $gravenumber) { $this->graveNumber = $gravenumber; }
 
+    protected function __construct()
+    {
+
+    }
 }
 
 class PersonType {
