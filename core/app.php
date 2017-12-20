@@ -21,11 +21,9 @@ class App
 
     private function IncludeAppFiles()
     {
-        $conf = (require('conf.php'))['app'];
-
-        self::RecursivePhpInclude($conf['controllers']);
-        self::RecursivePhpInclude($conf['models']);
-        self::RecursivePhpInclude($conf['views']);
+        self::RecursivePhpInclude($_SERVER['DOCUMENT_ROOT'].'/controllers/');
+        self::RecursivePhpInclude($_SERVER['DOCUMENT_ROOT'].'/models/');
+        self::RecursivePhpInclude($_SERVER['DOCUMENT_ROOT'].'/views/');
     }
 
     private static function RecursivePhpInclude($path)

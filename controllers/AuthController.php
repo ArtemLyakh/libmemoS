@@ -35,18 +35,12 @@ class AuthController extends BaseController
 
         $token = null;
         try {
-            $token = Token::GetNew($user->id);
+            $token = Token::GetNew($user->getId());
         } catch (Exception $ex) {
             throw new AppException(500, 'Не удалось авторизовать');
         }
 
-        return new AuthView(array(
-            'id' => $user->id,
-            'email' => $user->email,
-            'fio' => $user->fio,
-            'is_admin' => false,
-            'token' => $token->token
-        ));
+        return new AuthView($user, $token);
     }
 
     public static function Login()
@@ -70,17 +64,11 @@ class AuthController extends BaseController
 
         $token = null;
         try {
-            $token = Token::GetNew($user->id);
+            $token = Token::GetNew($user->getId());
         } catch (Exception $ex) {
             throw new AppException(500, 'Не удалось авторизовать');
         }
 
-        return new AuthView(array(
-            'id' => $user->id,
-            'email' => $user->email,
-            'fio' => $user->fio,
-            'is_admin' => false,
-            'token' => $token->token
-        ));
+        return new AuthView($user, $token);
     }
 }

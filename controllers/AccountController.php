@@ -8,13 +8,7 @@ class AccountController extends BaseController
 
         $user = App::Instance()->User();
 
-        return new AccountView(
-            $user->getFirstName(),
-            $user->getLastName(),
-            $user->getSecondName(),
-            $user->getDateBirth(),
-            $user->getImage()
-        );
+        return new AccountView($user);
     }
 
     public static function SaveInfo()
@@ -64,12 +58,6 @@ class AccountController extends BaseController
             throw new AppException(400, $ex->getMessage());
         }
         
-        return new AccountView(
-            $user->getFirstName(),
-            $user->getLastName(),
-            $user->getSecondName(),
-            $user->getDateBirth(),
-            $user->getImage()
-        );
+        return new AccountView($user);
     }
 }

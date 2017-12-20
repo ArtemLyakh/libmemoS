@@ -8,13 +8,12 @@ return array(
         'database' => 'libmemo'
     ),
     'app' => array(
-        'controllers' => $_SERVER['DOCUMENT_ROOT'].'/controllers/',
-        'models' => $_SERVER['DOCUMENT_ROOT'].'/models/',
-        'views' => $_SERVER['DOCUMENT_ROOT'].'/views/'
+        'name' => 'Libmemo',
+        'server' => 'http://localhost:8080'
     ),
     'fs' => array(
         'upload' => '/upload/',
         'tmp' => '/tmp/',
         'cache' => '/cache/'
-    )
+    ),
 );

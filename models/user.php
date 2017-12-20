@@ -30,6 +30,16 @@ class User
     public function getSecondName() { return $this->secondName; }
     public function setSecondName(?string $secondName) { $this->secondName = $secondName; }
 
+    public function getFio()
+    {
+        $fio = array();
+        if ($ln = $this->getLastName()) $fio[] = $ln;
+        if ($fn = $this->getFirstName()) $fio[] = $fn;
+        if ($sn = $this->getSecondName()) $fio[] = $sn;
+
+        return implode(' ', $fio);
+    }
+
     private $image;
     public function getImage() { return $this->image; }
     public function setImage(?File $image) { $this->image = $image; }
@@ -73,7 +83,7 @@ class User
 
             $user->setId(DB::Instance()->LastInsertedId());
             $user->setEmail($_email);
-            $user->setPassword($password);
+            $user->setPassword($_password);
             $user->setFirstName($_firstName);
 
             DB::Instance()->CommitTransaction();
