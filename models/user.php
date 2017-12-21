@@ -53,8 +53,14 @@ class User
 
     }
 
-    public static function Add(string $email, string $password)
+    public static function Add(array $data)
     {
+        if (empty($data['email']))
+            throw new UserException('Не указан email');
+
+        if (emtpy($data['password']))
+            throw new UserException('Не указан пароль');
+
         $sql = "
             INSERT INTO `users` 
             (`email`, `password`, `first_name`)
@@ -64,9 +70,9 @@ class User
 
         $stmt = DB::Instance()->Prepare($sql);
 
-        $_email = $email;
-        $_password = password_hash($password, PASSWORD_DEFAULT);
-        $_firstName = $email;
+        $_email = $data['email'];
+        $_password = password_hash($data['password'], PASSWORD_DEFAULT);
+        $_firstName = $data['email'];
 
         $stmt->bind_param('sss', $_email, $_password, $_firstName);
 
