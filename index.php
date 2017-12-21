@@ -31,6 +31,7 @@ App::Instance()->Route('POST', '/api/auth/login/', 'AuthController@Login');
 App::Instance()->Route('GET', '/api/account/', 'AccountController@GetInfo');
 App::Instance()->Route('POST', '/api/account/', 'AccountController@SaveInfo');
 
+App::Instance()->Route('POST', '/api/relatives/', 'RelativesController@Add');
 
 App::Instance()->Route('GET', '/test/', function() {
     var_dump(getallheaders());

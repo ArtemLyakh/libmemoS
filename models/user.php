@@ -55,12 +55,6 @@ class User
 
     public static function Add(array $data)
     {
-        if (empty($data['email']))
-            throw new UserException('Не указан email');
-
-        if (emtpy($data['password']))
-            throw new UserException('Не указан пароль');
-
         $sql = "
             INSERT INTO `users` 
             (`email`, `password`, `first_name`)
@@ -81,7 +75,7 @@ class User
             if (!$stmt->execute()) {
                 switch ($stmt->errno) {
                     case 1062: throw new UserException("Email ".$email." уже зарегистрирован");
-                    default: throw new Exception("Неизвестная ошибка");
+                    default: throw new Exception($stmt->error);
                 }
             }
 
